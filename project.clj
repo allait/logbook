@@ -13,7 +13,7 @@
   :source-paths ["src"]
   :hooks [leiningen.cljsbuild]
 
-  :doo {:alias {:default [:phantom]}
+  :doo {:alias {:default [:node]}
         :build "test"}
 
   :cljsbuild {:builds
@@ -30,6 +30,7 @@
                 :compiler {:output-to "resources/test/js/main.js"
                            :output-dir "resources/test/js"
                            :main logbook.test.runner
+                           :target :nodejs
                            :optimizations :none}}
                {:id "min"
                 :source-paths ["src"]
