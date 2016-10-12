@@ -1,3 +1,4 @@
 resources/public/js/
+resources/test/
 target/
 figwheel_server.log
