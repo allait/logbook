@@ -75,7 +75,9 @@
     [:div.pr
       [:img.avatar {:src (:avatar pr)}]
       [:a.title {:href (pr :url) :target "_blank" :rel "noopener"} (pr :title)]
-      [:div.pr-timestamp (pr :timestamp)]
+      (let [ts (js/moment (pr :timestamp))]
+        [:div.pr-time {:title (.format ts "dddd, MMMM Do YYYY, h:mm:ss a")}
+        (.format ts "dddd, MMM Do, HH:mm:ss")])
       [:div.state (pr :state)]]])
 
 (defn release-app [props]
