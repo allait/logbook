@@ -38,4 +38,4 @@
                            :main logbook.core
                            :optimizations :advanced
                            :pretty-print false}}]}
-  :figwheel {:nrepl-port 7888})
+  :figwheel {:nrepl-port 7888 :css-dirs ["resources/public/css"]})
