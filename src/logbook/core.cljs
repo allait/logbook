@@ -4,7 +4,9 @@
             [goog.string :as gstring]
             [goog.string.format]
             [cljs-http.client :as http]
-            [cljs.core.async :refer [<!]]))
+            [cljs.core.async :refer [<!]]
+            [cljsjs.moment]
+            [logbook.utils :refer [pr-map release-map group-prs-by-production-release]]))
 
 (enable-console-print!)
 
@@ -17,7 +19,7 @@
 (defonce github-data (r/atom {}))
 
 (def github-api "https://api.github.com")
-(def repositories ["allait/test-deployments" "alphagov/digitalmarketplace-api"])
+(def repositories ["alphagov/digitalmarketplace-buyer-frontend" "alphagov/digitalmarketplace-api"])
 
 (defn get-pulls [repo]
   (log (format "Requesting %s pull requests" repo))
@@ -36,12 +38,14 @@
   (sort #(compare (:title %1) (:title %2)) (apply concat (map :pulls (vals data)))))
 
 (defonce init
+  ;; FIXME this is sending requests fori on repo at a time
   (go (doseq [repo-name repositories]
-    ;; FIXME this is sending requests one at a time
-    (let [pulls (<! (get-pulls repo-name))
-          deployments (<! (get-deployments repo-name))]
-      (swap! github-data assoc-in [repo-name :pulls] (:body pulls))
-      (swap! github-data assoc-in [repo-name :deployments] (:body deployments))))))
+    (let [pulls (get-pulls repo-name)
+          deployments (get-deployments repo-name)]
+        (swap! github-data assoc-in [repo-name :pulls]
+               (map pr-map (:body (<! pulls))))
+        (swap! github-data assoc-in [repo-name :deployments]
+               (map release-map (:body (<! deployments))))))))
 
 (defn release-stats [{:keys [total env]}]
   (let [props-for (fn [name]
@@ -53,35 +57,47 @@
       [:li [:a (props-for :staging) "Staging"]]
       [:li [:a (props-for :production) "Production"]]]]))
 
-(defn release-item []
-  (fn [{:keys [title url repo user state merged_at]}]
-    [:li {:class "pr"}
-      [:div.view
-       [:div.state state]
-       [:div.merged_at merged_at]
-       [:img.avatar {:src (:avatar_url user) :width 20 :height 20}]
-       [:a {:href url} title]]]))
+(defn pr-item [pr releases-map]
+  [:li.item
+    [:ul.releases
+     (let [releases (releases-map (:sha pr))
+           first-ts (js/moment (:timestamp (first releases)))]
+        (for [release releases]
+          (let [ts (js/moment (release :timestamp))]
+            ^{:key (:id release)}
+            [:li.release {:class (:environment release)}
+             (if (= release (first releases))
+               [:span.release-time {:title (.format ts "dddd, MMMM Do YYYY, h:mm:ss a")}
+                (.format ts "dddd, MMM Do, HH:mm:ss")]
+               [:span.release-time {:title (.format ts "dddd, MMMM Do YYYY, h:mm:ss a")}
+                (.from ts first-ts true) " earlier"]
+               )])))]
+    [:div.pr
+      [:img.avatar {:src (:avatar pr)}]
+      [:a.title {:href (pr :url) :target "_blank" :rel "noopener"} (pr :title)]
+      [:div.pr-timestamp (pr :timestamp)]
+      [:div.state (pr :state)]]])
 
 (defn release-app [props]
   (let [env (r/atom :preview)]
     (fn []
-      (let [items (list-pulls @github-data)]
-        (log "Items" items)
+      (let [releases (:deployments (@github-data "alphagov/digitalmarketplace-api"))
+            releases-map (group-by :sha releases)
+            prs (get-in @github-data ["alphagov/digitalmarketplace-api" :pulls])
+            items (group-prs-by-production-release prs releases)]
         [:div
-         [:section#releases
           [:header#header
            [:h1 "Releases"]]
           (if (-> items count pos?)
-            [:div
-             [:section#main
-              [:ul#releases
-               (for [item items]
-                 ^{:key (:id item)} [release-item item])]]
-             [:footer#footer
-              [release-stats {:total (count items) :env env}]]]
-            [:div [:p "Loading Github data"]])]]))))
+            [:section#main
+              [:ul.prs
+                (for [item (flatten items)]
+                  ^{:key (:id item)} [pr-item item releases-map])]]
+            [:div [:p "Loading Github data"]])
+          [:footer#footer
+            [release-stats {:total (count items) :env env}]]]))))
 
 (defn ^:export run []
-  (r/render [release-app]
-            (js/document.getElementById "app")))
+  (r/render [release-app] (js/document.getElementById "app")))
+
 (run)

@@ -4,7 +4,8 @@
                  [org.clojure/clojurescript "1.9.227"]
                  [org.clojure/core.async "0.2.374"]
                  [reagent "0.6.0-rc"]
-                 [cljs-http "0.1.41"]]
+                 [cljs-http "0.1.41"]
+                 [cljsjs/moment "2.10.6-4"]]
 
   :plugins [[lein-figwheel "0.5.6"]
             [lein-cljsbuild "1.1.3"]
