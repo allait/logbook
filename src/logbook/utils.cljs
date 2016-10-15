@@ -3,6 +3,7 @@
 
 (defn pr-map [github-pr]
   {:id (:id github-pr)
+   :number (:number github-pr)
    :repo (get-in github-pr [:base :repo :url])
    :title (:title github-pr)
    :sha (:merge_commit_sha github-pr)

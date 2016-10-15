@@ -74,7 +74,8 @@
                )])))]
     [:div.pr
       [:img.avatar {:src (:avatar pr)}]
-      [:a.title {:href (pr :url) :target "_blank" :rel "noopener"} (pr :title)]
+      [:a.title {:href (pr :url) :target "_blank" :rel "noopener"}
+       (format "%s (#%s)" (pr :title) (pr :number))]
       (let [ts (js/moment (pr :timestamp))]
         [:div.pr-time {:title (.format ts "dddd, MMMM Do YYYY, h:mm:ss a")}
         (.format ts "dddd, MMM Do, HH:mm:ss")])
