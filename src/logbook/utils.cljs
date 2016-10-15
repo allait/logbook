@@ -5,6 +5,7 @@
   {:id (:id github-pr)
    :number (:number github-pr)
    :repo (get-in github-pr [:base :repo :url])
+   :app (get-in github-pr [:base :repo :name])
    :title (:title github-pr)
    :sha (:merge_commit_sha github-pr)
    :url (clojure.string/replace (clojure.string/replace (:url github-pr) #"(api\.|repos/)" "")

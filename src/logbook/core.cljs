@@ -74,6 +74,7 @@
                )])))]
     [:div.pr
       [:img.avatar {:src (:avatar pr)}]
+      [:div.app (:app pr)]
       [:a.title {:href (pr :url) :target "_blank" :rel "noopener"}
        (format "%s (#%s)" (pr :title) (pr :number))]
       (let [ts (js/moment (pr :timestamp))]

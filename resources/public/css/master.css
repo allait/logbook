@@ -3,9 +3,11 @@
 }
 
 body {
+  margin: 0;
   font-size: 14px;
   line-height: 1.33em;
   font-family: "Helvetica", sans;
+  max-width: 100%;
 }
 
 .prs {
@@ -19,7 +21,6 @@ body {
   padding: 0.5em 0;
   margin-bottom: 0.5em;
   background: #fcfcfc;
-  border-radius: 5px;
 }
 
 .releases {
@@ -41,7 +42,7 @@ body {
 }
 
 .pr {
-  max-width: 80%;
+  width: 80%;
 }
 
 .avatar {
